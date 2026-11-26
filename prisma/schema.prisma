@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                Int        @id @default(autoincrement())
+  nome              String
+  email             String     @unique
+  senhaHash         String
+  perfil            String     @default("CLIENTE") // CLIENTE, COZINHA, GERENTE
+  consentimentoLgpd Boolean    @default(false)
+  consentimentoEm   DateTime?
+  pontosFidelidade  Int        @default(0)
+  criadoEm          DateTime   @default(now())
+  pedidos           Pedido[]
+  logs              AuditLog[]
+}
+
+model Unidade {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  cidade   String
+  ativa    Boolean   @default(true)
+  estoques Estoque[]
+  pedidos  Pedido[]
+}
+
+model Produto {
+  id          Int          @id @default(autoincrement())
+  nome        String
+  descricao   String
+  preco       Float
+  sazonal     Boolean      @default(false)
+  estoques    Estoque[]
+  itensPedido ItemPedido[]
+}
+
+model Estoque {
+  id         Int     @id @default(autoincrement())
+  unidadeId  Int
+  produtoId  Int
+  quantidade Int
+  unidade    Unidade @relation(fields: [unidadeId], references: [id])
+  produto    Produto @relation(fields: [produtoId], references: [id])
+
+  @@unique([unidadeId, produtoId])
+}
+
+model Pedido {
+  id          Int          @id @default(autoincrement())
+  usuarioId   Int
+  unidadeId   Int
+  canalPedido String       // APP, TOTEM, BALCAO, PICKUP, WEB
+  status      String       @default("AGUARDANDO_PAGAMENTO")
+  total       Float
+  criadoEm    DateTime     @default(now())
+  usuario     Usuario      @relation(fields: [usuarioId], references: [id])
+  unidade     Unidade      @relation(fields: [unidadeId], references: [id])
+  itens       ItemPedido[]
+  pagamentos  Pagamento[]
+}
+
+model ItemPedido {
+  id            Int     @id @default(autoincrement())
+  pedidoId      Int
+  produtoId     Int
+  quantidade    Int
+  precoUnitario Float
+  pedido        Pedido  @relation(fields: [pedidoId], references: [id])
+  produto       Produto @relation(fields: [produtoId], references: [id])
+}
+
+model Pagamento {
+  id              Int      @id @default(autoincrement())
+  pedidoId        Int
+  metodoPagamento String
+  status          String   // APROVADO ou RECUSADO
+  codigoTransacao String
+  criadoEm        DateTime @default(now())
+  pedido          Pedido   @relation(fields: [pedidoId], references: [id])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int?
+  acao       String
+  entidade   String
+  entidadeId Int?
+  detalhes   String
+  criadoEm   DateTime @default(now())
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id])
+}
