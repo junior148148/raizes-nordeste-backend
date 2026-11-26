@@ -34,7 +34,7 @@ O projeto adota separação de responsabilidades em 4 camadas dentro de `src/`:
 
 ### 3.1. Clonar o repositório
 ```bash
-git clone [https://github.com/junior148148/raizes-nordeste-backend.git](https://github.com/junior148148/raizes-nordeste-backend.git)
+git clone [https://github.com/junior148148/raizes-nordeste-backend.git]
 cd raizes-nordeste-backend
 ```
 
